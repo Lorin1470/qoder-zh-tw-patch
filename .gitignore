@@ -1,0 +1,8 @@
+work/
+backup/
+patched/
+translations/source/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
