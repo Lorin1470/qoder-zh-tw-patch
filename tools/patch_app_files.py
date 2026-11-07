@@ -6,8 +6,11 @@ Sources are read from work/original (pristine copies) and written to
 """
 
 import json
+import os
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -25,6 +28,7 @@ KEYWORDS_BEFORE_REGEX = {
     "throw", "case", "do", "else", "yield", "await",
 }
 REGEX_PREFIX_CHARS = set("([{,;:=!&|?+-*%^~<>")
+IDENT_RE = re.compile(r"[A-Za-z0-9_$]+")
 
 
 def _scan_regex(text, start):
@@ -59,6 +63,7 @@ def _scan_template_expr(text, start):
     i = start + 2
     n = len(text)
     depth = 1
+    last = "{"
     while i < n:
         c = text[i]
         if c in "\"'":
@@ -72,6 +77,7 @@ def _scan_template_expr(text, start):
                     i += 1
                     break
                 i += 1
+            last = q
             continue
         if c == "`":
             i += 1
@@ -83,21 +89,37 @@ def _scan_template_expr(text, start):
                 if text[i] == "`":
                     depth_t -= 1
                 i += 1
+            last = "`"
             continue
-        if c == "/" and i + 1 < n and text[i + 1] == "*":
-            j = text.find("*/", i + 2)
-            i = n if j < 0 else j + 2
-            continue
-        if c == "/" and i + 1 < n and text[i + 1] == "/":
-            j = text.find("\n", i)
-            i = n if j < 0 else j
-            continue
+        if c == "/" and i + 1 < n:
+            nxt = text[i + 1]
+            if nxt == "*":
+                j = text.find("*/", i + 2)
+                i = n if j < 0 else j + 2
+                continue
+            if nxt == "/":
+                j = text.find("\n", i)
+                i = n if j < 0 else j
+                continue
+            prev_char = last[-1] if last else ""
+            if (last in KEYWORDS_BEFORE_REGEX or prev_char in REGEX_PREFIX_CHARS
+                    or last == ""):
+                i = _scan_regex(text, i)
+                last = "/"
+                continue
         if c == "{":
             depth += 1
         elif c == "}":
             depth -= 1
             if depth == 0:
                 return i + 1
+        if not c.isspace():
+            if c.isalnum() or c in "_$":
+                m = IDENT_RE.match(text, i)
+                last = m.group(0) if m else c
+                i = m.end() if m else i + 1
+                continue
+            last = c
         i += 1
     return n
 
@@ -179,11 +201,49 @@ def convert_js_strings(text):
         out.append(c)
         if not c.isspace():
             if c.isalnum() or c in "_$":
-                m = re.match(r"[A-Za-z0-9_$]+", text[i:])
+                m = IDENT_RE.match(text, i)
                 last = m.group(0) if m else c
             else:
                 last = c
         i += 1
+    return "".join(out)
+
+
+JS_EXTRACTOR = Path(__file__).resolve().parent / "jsparse" / "extract_ranges.js"
+CJK_RE = re.compile(r"[\u3400-\u9fff\u201c\u201d\u2018\u2019]")
+
+
+def convert_js_strings_acorn(text, source_type="module"):
+    """Convert Chinese inside JS strings using acorn-derived exact ranges.
+
+    Avoids the regex/division heuristic fragility on minified bundles by
+    letting a real parser locate string-literal and template-quasi ranges.
+    """
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".js", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(text)
+        tmp = f.name
+    try:
+        r = subprocess.run(
+            ["node", str(JS_EXTRACTOR), tmp, source_type],
+            capture_output=True, text=True,
+        )
+        if r.returncode != 0:
+            raise SystemExit("acorn parse failed: " + r.stderr[:2000])
+        ranges = json.loads(r.stdout)
+    finally:
+        os.unlink(tmp)
+    out = []
+    cursor = 0
+    for a, b in ranges:
+        if a < cursor:
+            continue
+        out.append(text[cursor:a])
+        seg = text[a:b]
+        out.append(Converter().convert(seg) if CJK_RE.search(seg) else seg)
+        cursor = b
+    out.append(text[cursor:])
     return "".join(out)
 
 

@@ -1,7 +1,15 @@
-work/
+work/*
+!work/056-dict/
+work/056-dict/*
+!work/056-dict/tw_base.json
+!work/056-dict/mf2_tw.json
+!work/056-dict/fT2_tw.json
+!work/056-dict/sites_tw.json
+!work/056-dict/sites_tw_annot.json
 backup/
 patched/
 translations/source/
+tools/jsparse/node_modules/
 __pycache__/
 *.pyc
 *.log
