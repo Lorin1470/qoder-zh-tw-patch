@@ -4,7 +4,9 @@
 
 目前支援並實機驗證的版本：
 
-- **0.5.6**（最新，見下方「0.5.6 版變更」）
+- **0.5.12**（最新，見下方「0.5.12 版變更」）
+- 0.5.7（工具保留於 `tools/*_057.py`）
+- 0.5.6（工具保留於 `tools/*_056.py` 與 `scripts/qoder-0.5.6/`）
 - 0.4.11（舊版，工具保留於 `tools/*.py` 與 `scripts/qoder-0.4.11/`）
 
 兩個版本都在 macOS 15.7.7 arm64 上實際套用並驗證：
@@ -15,6 +17,19 @@
 - Sites 的發佈預覽與標註字串
 
 > 想讓 Agent 幫你安裝？把 **[AGENT_PROMPT.md](AGENT_PROMPT.md)** 裡的提示詞整段貼給具 shell 權限、可修改 `/Applications/Qoder.app` 的 Agent，它會在你的機器上就地產生並套用補丁。
+
+## 0.5.12 版變更
+
+0.5.12 的 i18n 與主 bundle 檔名、錨點變數再次改變，因此另寫一組 `*_0512.py`：
+
+- **i18n 檔**：`out/renderer/assets/C4HI_h4X.js`；資源物件 `zt`、語言清單 `on`、locale 正規化 `an`、localStorage 鍵 `Ye="loop.language"`。
+- **主 bundle**：`out/renderer/assets/CAGvh22m.js`；issueDrawer 資源 `D2t`、projectBoard 資源 `kBt`；頭像選單改用 `Ue.changeLanguage`，並補 `localStorage.setItem("loop.language", …)` 確保頭像切換會被記住。
+- **原生選單**：`KLx` 函式；locale 來源 `xe[t(-8600,6468)]()`（app.getLocale）。
+- **Sites 擴展**：錨點改為 `J4`／`p7`／`H7`，字典注入方式不變。
+- **資源抽取**：`tools/jsparse/extract_resources_0512.js` 以 acorn 依序執行頂層宣告（並 stub 瀏覽器 API），取出 `zt`、`D2t`、`kBt` 的 zh／zh-HK 字串，再交給 `build_zh_tw_0512.py` 產生台灣用語字典。
+- 0.5.7 的對應版本為 `*_057.py`（i18n `BkeoGa4m.js`、主 bundle `gtdG4YpP.js`），工具保留可用。
+
+0.5.12 的字典位於 `work/0512-dict/`（`tw_base.json`、`mf2_tw.json`、`fT2_tw.json`、`sites_tw.json`＋`sites_tw_annot.json`）。
 
 ## 0.5.6 版變更
 
