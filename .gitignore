@@ -28,3 +28,10 @@ __pycache__/
 *.pyc
 *.log
 .DS_Store
+!work/0513-dict/
+work/0513-dict/*
+!work/0513-dict/tw_base.json
+!work/0513-dict/mf2_tw.json
+!work/0513-dict/fT2_tw.json
+!work/0513-dict/sites_tw.json
+!work/0513-dict/sites_tw_annot.json

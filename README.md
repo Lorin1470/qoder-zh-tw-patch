@@ -1,15 +1,16 @@
 # Qoder 繁體中文（台灣）在地化補丁
 
-非官方專案，為 **Qoder Desktop（macOS arm64）** 加入繁體中文（台灣用語），並把內建的 **Sites** 擴充套件一起繁中化。
+非官方專案，為 **Qoder Desktop** 加入繁體中文（台灣用語），並把內建的 **Sites** 擴充套件一起繁中化。
 
 目前支援並實機驗證的版本：
 
-- **0.5.12**（最新，見下方「0.5.12 版變更」）
+- **0.5.13（Windows 10 x64 實機驗證，見 [scripts/qoder-0.5.13/README.md](scripts/qoder-0.5.13/README.md)）**
+- 0.5.12（macOS，見下方「0.5.12 版變更」）
 - 0.5.7（工具保留於 `tools/*_057.py`）
 - 0.5.6（工具保留於 `tools/*_056.py` 與 `scripts/qoder-0.5.6/`）
 - 0.4.11（舊版，工具保留於 `tools/*.py` 與 `scripts/qoder-0.4.11/`）
 
-兩個版本都在 macOS 15.7.7 arm64 上實際套用並驗證：
+0.5.12 與更早在 macOS 15.7.7 arm64 上實際套用並驗證；0.5.13 在 Windows 10 x64 驗證：
 
 - 主介面、原生選單、設定頁
 - 左側「站點」入口
@@ -17,6 +18,20 @@
 - Sites 的發佈預覽與標註字串
 
 > 想讓 Agent 幫你安裝？把 **[AGENT_PROMPT.md](AGENT_PROMPT.md)** 裡的提示詞整段貼給具 shell 權限、可修改 `/Applications/Qoder.app` 的 Agent，它會在你的機器上就地產生並套用補丁。
+
+## 0.5.13 版變更（Windows 支援）
+
+0.5.13 的 i18n chunk `C4HI_h4X.js` 與 Sites 擴充和 0.5.12 **位元組相同**，字典與 Sites 補丁可直接沿用。差異：
+
+- **主 bundle**：`CAGvh22m.js` → `DB5RheoM.js`；issueDrawer 資源 `D2t` → `B2t`、projectBoard 資源 `kBt` → `MBt`，其餘錨點不變。
+- **原生選單**：`KLx` → `NLx`（新的混淆偏移）；locale 來源 `xe[t(53125,21469)]()`（`xe` 是 import 的 electron `app`）。
+- **轉換 chunks 重新盤點**：`sJNnZRwO`、`BHeyMntc`、`B5ZSHQum`、`E8xm_B5G`、`DsRCeT1Q`、`Du7Q5KIm`、`JtrNHQW2` 等只含顯示字串。文法／關鍵字 chunk（文言 `BV7otONQ`、Gherkin `DyxjwDmM`／`heZmZLOM`、簡報 worker）的中文是比對用 pattern，**不可轉換**。
+- **Windows 安裝器** `tools/install_win_0513.py`（apply／restore／wait）：
+  - Windows 版 Electron 的 `EnableEmbeddedAsarIntegrityValidation` fuse 已啟用，asar header 雜湊嵌在 `Qoder.exe` 資源區（JSON 形式），安裝器做等長雜湊置換，不需 codesign。
+  - 自動備份六個檔案到 `%LOCALAPPDATA%/QoderPatch/backup-0.5.13`，`restore` 一鍵還原。
+  - `wait` 模式：等 Qoder 完全結束後自動套用並重開，失敗自動還原（適合 Agent 在 Qoder 內操作）。
+- 所有 0513 工具輸出路徑改為 repo 內 `work/`，不再依賴 `/tmp`；`QODER_RESOURCES` 環境變數可覆寫資源目錄。
+- 完整流程見 [scripts/qoder-0.5.13/README.md](scripts/qoder-0.5.13/README.md)。
 
 ## 0.5.12 版變更
 
@@ -72,11 +87,11 @@ Qoder 為其權利人所有。本專案只提供工具與翻譯資料；請從**
 
 ## 需求
 
-- macOS（測試於 macOS 15.7.7 arm64）
-- Qoder Desktop **0.5.6**（或舊版 0.4.11）
+- macOS（0.4.11–0.5.12，測試於 macOS 15.7.7 arm64）或 **Windows 10/11 x64（0.5.13）**
+- 對應版本的 Qoder Desktop
 - Python 3.9+
-- Node.js / `npx`（解出 `app.asar`；0.5.6 另需 acorn 解析字串）
-- 可寫入 `/Applications/Qoder.app` 的權限
+- Node.js / `npx`（解出 `app.asar`；0.5.6+ 另需 acorn 解析字串）
+- macOS：可寫入 `/Applications/Qoder.app` 的權限；Windows：使用者安裝版（`%LOCALAPPDATA%/Programs/Qoder`）即可
 
 ```bash
 python3 -m pip install -r requirements.txt
