@@ -7,6 +7,8 @@ Windows 與 macOS 皆可執行產生階段。
 
 以下流程在 **Windows 10 x64、Qoder Desktop 0.5.13** 實機驗證。
 
+> 想讓 Agent 全自動安裝？把 [AGENT_PROMPT_WINDOWS.md](../../AGENT_PROMPT_WINDOWS.md) 的提示詞整段貼給 Agent 即可。
+
 ## 前置
 
 ```bash

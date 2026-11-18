@@ -17,7 +17,9 @@
 - Sites 入口頁：探索 Sites、我的站點、與我共用、新增站點、尚未建立站點
 - Sites 的發佈預覽與標註字串
 
-> 想讓 Agent 幫你安裝？把 **[AGENT_PROMPT.md](AGENT_PROMPT.md)** 裡的提示詞整段貼給具 shell 權限、可修改 `/Applications/Qoder.app` 的 Agent，它會在你的機器上就地產生並套用補丁。
+> 想讓 Agent 幫你安裝？
+> - **Windows（0.5.13）**：把 **[AGENT_PROMPT_WINDOWS.md](AGENT_PROMPT_WINDOWS.md)** 裡的提示詞整段貼給具 shell 權限的 Agent（例如 Qoder 內的 Agent），它會就地產生補丁、以延後套用模式安裝並自動重開。
+> - **macOS（0.5.6）**：把 **[AGENT_PROMPT.md](AGENT_PROMPT.md)** 裡的提示詞整段貼給可修改 `/Applications/Qoder.app` 的 Agent。
 
 ## 0.5.13 版變更（Windows 支援）
 
@@ -99,7 +101,20 @@ python3 -m pip install -r requirements.txt
 ( cd tools/jsparse && npm install )
 ```
 
-## 使用流程
+## 安裝方式一：叫 Agent 安裝（推薦）
+
+把對應平台的提示詞整段貼給具 shell 權限的 Agent，它會自動完成版本檢查、產生補丁、備份、套用與驗證：
+
+| 平台／版本 | 提示詞 |
+| --- | --- |
+| Windows・0.5.13 | [AGENT_PROMPT_WINDOWS.md](AGENT_PROMPT_WINDOWS.md) |
+| macOS・0.5.6 | [AGENT_PROMPT.md](AGENT_PROMPT.md) |
+
+Windows 版提示詞內含「延後套用」流程：Agent 就算在 Qoder 內執行，也能先啟動獨立監看行程，等使用者關閉 Qoder 後自動套用並重開，失敗自動還原。
+
+## 安裝方式二：手動安裝（macOS 流程）
+
+> Windows 0.5.13 的手動流程見 [scripts/qoder-0.5.13/README.md](scripts/qoder-0.5.13/README.md)。
 
 > 以下流程會修改 `/Applications/Qoder.app`。請先備份整個 App，並在 Qoder 完全結束時操作。
 
