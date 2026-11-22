@@ -35,3 +35,9 @@ work/0513-dict/*
 !work/0513-dict/fT2_tw.json
 !work/0513-dict/sites_tw.json
 !work/0513-dict/sites_tw_annot.json
+!work/0517-dict/
+work/0517-dict/*
+!work/0517-dict/tw_base.json
+!work/0517-dict/sites_tw.json
+!work/0517-dict/sites_tw_annot.json
+!work/0517-dict/sites_status_tw.json

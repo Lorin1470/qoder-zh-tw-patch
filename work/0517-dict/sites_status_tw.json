@@ -1,0 +1,15 @@
+{
+  "active": "使用中",
+  "suspended": "已暫停",
+  "deleting": "刪除中",
+  "deleted": "已刪除",
+  "ready": "已就緒",
+  "uploading": "上傳中",
+  "verifying": "驗證中",
+  "failed": "失敗",
+  "queued": "排隊中",
+  "running": "執行中",
+  "succeeded": "已完成",
+  "cancelled": "已取消",
+  "superseded": "已被取代"
+}

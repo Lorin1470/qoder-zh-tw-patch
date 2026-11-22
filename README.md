@@ -4,13 +4,14 @@
 
 目前支援並實機驗證的版本：
 
+- **0.5.17（Qoder CN・macOS 15.7.7 arm64，見 [scripts/qoder-0.5.17-macos/README.md](scripts/qoder-0.5.17-macos/README.md)）**
 - **0.5.13（Windows 10 x64 實機驗證，見 [scripts/qoder-0.5.13/README.md](scripts/qoder-0.5.13/README.md)）**
 - 0.5.12（macOS，見下方「0.5.12 版變更」）
 - 0.5.7（工具保留於 `tools/*_057.py`）
 - 0.5.6（工具保留於 `tools/*_056.py` 與 `scripts/qoder-0.5.6/`）
 - 0.4.11（舊版，工具保留於 `tools/*.py` 與 `scripts/qoder-0.4.11/`）
 
-0.5.12 與更早在 macOS 15.7.7 arm64 上實際套用並驗證；0.5.13 在 Windows 10 x64 驗證：
+0.5.12 與更早在 macOS 15.7.7 arm64 上實際套用並驗證；0.5.13 在 Windows 10 x64 驗證；0.5.17 在 macOS 15.7.7 arm64 的 **Qoder CN** 上建置與安裝：
 
 - 主介面、原生選單、設定頁
 - 左側「站點」入口
@@ -20,6 +21,31 @@
 > 想讓 Agent 幫你安裝？
 > - **Windows（0.5.13）**：把 **[AGENT_PROMPT_WINDOWS.md](AGENT_PROMPT_WINDOWS.md)** 裡的提示詞整段貼給具 shell 權限的 Agent（例如 Qoder 內的 Agent），它會就地產生補丁、以延後套用模式安裝並自動重開。
 > - **macOS（0.5.6）**：把 **[AGENT_PROMPT.md](AGENT_PROMPT.md)** 裡的提示詞整段貼給可修改 `/Applications/Qoder.app` 的 Agent。
+
+## 0.5.17 版變更（Qoder CN）
+
+0.5.17 的 renderer 重構幅度比前幾版大，另寫一組 `*_0517.py`，並以 Qoder CN
+（`/Applications/Qoder CN.app`）為目標：
+
+- **i18n**：`out/renderer/assets/D7G81Cst.js`；所有 namespace 併入 `Ye`，且已內建
+  zh-HK 與 ko-KR。補丁在 `,Ae="loop.language";` 後注入 `Ye["zh-TW"]`。
+- **語言清單／正規化**：移到 `UnNhyzqB.js`（`Oe`、`Xe`）。設定頁下拉值由
+  `Xe(language)` 推導，因此清單加入 zh-TW、正規化把 `zh-tw`／`zh-hant` 映到
+  `zh-TW` 後，設定頁與頭像選單即可使用（`zh-HK`／`zh-MO` 仍走港版）。
+- **主 bundle**：`DMzt2vcU.js`；內嵌約兩萬筆單字 IME 字典。轉換工具只處理含
+  2 個以上漢字的字串常值（模板文字一律轉換），避免破壞輸入法資料。
+- **acorn 位移修正**：acorn 的 offset 是 UTF-16 code unit，bundle 含 emoji 時
+  必須用 UTF-16 切片，否則字串 range 會整體錯位（`extract_ranges_typed.js`）。
+- **原生選單**：`wHt` 已無混淆，依系統 locale 回傳；`zh-tw`／`zh-hant` 走繁中。
+- **Sites 擴充**：`view.cjs` 的 `T4`、`publishPreview.cjs` 的 `p7`／`H7` 選取器
+  與 `gs`／`PL` 狀態表；`plugin.json` 補 `zh-TW: 網站`，並更新 `catalog.v1.json`
+  的三個雜湊與 manifest。
+- **安裝器**：`scripts/qoder-0.5.17-macos/install.sh`（`wait`／`now`／`check`／
+  `restore`）；延後套用會等 Qoder CN 完全結束後替換 App、自動重開，失敗自動還原。
+
+0.5.17 的字典位於 `work/0517-dict/`（`tw_base.json`、`sites_tw.json`、
+`sites_tw_annot.json`、`sites_status_tw.json`）。完整流程見
+[scripts/qoder-0.5.17-macos/README.md](scripts/qoder-0.5.17-macos/README.md)。
 
 ## 0.5.13 版變更（Windows 支援）
 
@@ -72,12 +98,13 @@
 
 **收錄**
 
-- `tools/`：繁中轉換、i18n 注入、Sites 字典注入、ASAR 重打包工具（`*_056.py` 為 0.5.6 版）
-- `tools/jsparse/`：以 acorn 抽取 JS 字串 range 的小工具（0.5.6 使用）
+- `tools/`：繁中轉換、i18n 注入、Sites 字典注入、ASAR 重打包工具（`*_0517.py` 為 0.5.17 版、`*_056.py` 為 0.5.6 版）
+- `tools/jsparse/`：以 acorn 抽取 JS 字串 range 的小工具（0.5.17 另用 `extract_ranges_typed.js` 區分字串與模板）
 - `translations/zh-TW/`：0.4.11 主程式繁中翻譯（已建置完成）
+- `work/0517-dict/`：0.5.17 繁中翻譯（主程式、Sites、Sites 狀態）
 - `work/056-dict/`：0.5.6 繁中翻譯（主程式、issueDrawer、projectBoard、Sites）
 - `data/sites_tw.json`、`data/sites_tw_annot.json`：0.4.11 Sites 221 條介面字串與 13 條標註字串
-- `scripts/qoder-0.4.11/`、`scripts/qoder-0.5.6/`：各版實際使用的參考安裝／還原腳本
+- `scripts/qoder-0.4.11/`、`scripts/qoder-0.5.6/`、`scripts/qoder-0.5.17-macos/`：各版實際使用的參考安裝／還原腳本
 
 **不包含**
 
@@ -89,7 +116,7 @@ Qoder 為其權利人所有。本專案只提供工具與翻譯資料；請從**
 
 ## 需求
 
-- macOS（0.4.11–0.5.12，測試於 macOS 15.7.7 arm64）或 **Windows 10/11 x64（0.5.13）**
+- macOS（0.4.11–0.5.12、0.5.17 Qoder CN，測試於 macOS 15.7.7 arm64）或 **Windows 10/11 x64（0.5.13）**
 - 對應版本的 Qoder Desktop
 - Python 3.9+
 - Node.js / `npx`（解出 `app.asar`；0.5.6+ 另需 acorn 解析字串）
@@ -109,6 +136,7 @@ python3 -m pip install -r requirements.txt
 | --- | --- |
 | Windows・0.5.13 | [AGENT_PROMPT_WINDOWS.md](AGENT_PROMPT_WINDOWS.md) |
 | macOS・0.5.6 | [AGENT_PROMPT.md](AGENT_PROMPT.md) |
+| macOS・0.5.17（Qoder CN） | [scripts/qoder-0.5.17-macos/README.md](scripts/qoder-0.5.17-macos/README.md)（手動流程） |
 
 Windows 版提示詞內含「延後套用」流程：Agent 就算在 Qoder 內執行，也能先啟動獨立監看行程，等使用者關閉 Qoder 後自動套用並重開，失敗自動還原。
 
