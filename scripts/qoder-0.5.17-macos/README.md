@@ -78,8 +78,9 @@ node --check work/0517-sites-stage/dist/browser/publishPreview.cjs
   常值，模板文字一律轉換。
 - **acorn 位移**：acorn 回報的是 UTF-16 code unit 位移，bundle 內含 emoji
   （星體字元）時必須以 UTF-16 切片，否則後續所有 range 都會錯位。
-- **原生選單**：`electronMain.js` 的 `wHt`（非混淆）依系統 locale 回傳選單；
-  `zh-tw`／`zh-hant`／`zh-hk`／`zh-mo` 走繁中選單。
+- **原生選單**：`electronMain.js` 的 `wHt`（非混淆）。Qoder CN 會把 app
+  locale 固成 `zh-CN`，因此補丁同時檢查 `xt.getSystemLocale()`；兩者任一為
+  `zh-tw`／`zh-hant`／`zh-hk`／`zh-mo` 就走繁中選單。
 - **主程序語言清單**：`out/main/chunks/C1jqE3Um.js` 的 `bn` 與 `Wi`。
 - **Sites**：`view.cjs` 選取器 `T4`、狀態表 `gs`；`publishPreview.cjs` 選取器
   `p7`／`H7`、狀態表 `PL`。`plugin.json` 的 `title.translations` 補上
@@ -95,6 +96,10 @@ python3 tools/build_staged_app_0517.py
 它會 ditto 複製已安裝的 App、用 `tools/repack_asar.py` 重打包 `app.asar`、
 更新 `Info.plist` 的 `ElectronAsarIntegrity` 雜湊、換入 Sites 三檔與
 `catalog.v1.json`、移除舊簽章資源，最後以 ad-hoc 重新簽章並驗證。
+重新簽章會先從原始 App 讀出 entitlements（JIT、unsigned executable memory、
+關閉 library validation 等），以 `--options runtime --entitlements` 簽回；
+少了這些權限，Electron 的 renderer 會在啟動後終止。安裝器套用前會再檢查
+主程式與 renderer helper 都帶 `com.apple.security.cs.allow-jit`。
 
 ## 5. 套用
 

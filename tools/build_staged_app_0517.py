@@ -128,6 +128,15 @@ def main():
         shutil.copyfile(SITES / rel, ext / "qoder.sites" / rel)
     shutil.copyfile(SITES / "catalog.v1.json", ext / "catalog.v1.json")
 
+    ent = dest.parent / "entitlements-0517.plist"
+    r = subprocess.run(
+        ["codesign", "-d", "--entitlements", ":-", str(app)],
+        capture_output=True, text=True,
+    )
+    if "allow-jit" not in r.stdout:
+        raise SystemExit("could not read entitlements from the source app")
+    ent.write_text(r.stdout, "utf-8")
+
     for junk in ("Contents/CodeResources", "Contents/_CodeSignature"):
         p = dest / junk
         if p.is_dir():
@@ -135,8 +144,16 @@ def main():
         elif p.exists():
             p.unlink()
 
-    run(["codesign", "--force", "--deep", "--sign", "-", str(dest)])
+    run(["codesign", "--force", "--deep", "--sign", "-", "--options", "runtime",
+         "--entitlements", str(ent), str(dest)])
     run(["codesign", "--verify", "--deep", "--strict", str(dest)])
+    for target in (dest, dest / "Contents/Frameworks/Qoder CN Helper (Renderer).app"):
+        r = subprocess.run(
+            ["codesign", "-d", "--entitlements", ":-", str(target)],
+            capture_output=True, text=True,
+        )
+        if "allow-jit" not in r.stdout:
+            raise SystemExit(f"missing allow-jit entitlement after signing: {target}")
     run(["/usr/bin/xattr", "-dr", "com.apple.quarantine", str(dest)])
 
     result = {

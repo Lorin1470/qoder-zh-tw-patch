@@ -18,9 +18,9 @@ MAIN_EXE="$APP/Contents/MacOS/Qoder CN"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 EXPECTED_VERSION="0.5.17"
-EXPECTED_ASAR_SIZE="174598399"
-EXPECTED_ASAR_FILE="389f589d87d01c37a19215fe233b0c3f1d9fa879ad14535e1411d45d4528b9ab"
-EXPECTED_HEADER="32b814039802de14f0bf81baea1656c727ef7ec3f48e3b3518828d1fecfc510d"
+EXPECTED_ASAR_SIZE="174598478"
+EXPECTED_ASAR_FILE="8c3b8e92e7f3d04b48b6182721980af16273d1cb79fb002a8157886722232096"
+EXPECTED_HEADER="7f24d06d40faa1d025a946b0d7eb3f64b1698c4e018fce771c7d436573eaa9b4"
 ORIGINAL_ASAR_FILE="da16d204d46e7f912e753125c50519a2480b2c13faced8e8ef7036875ba130f7"
 
 mkdir -p "$PATCH_DIR" 2>/dev/null || true
@@ -67,6 +67,18 @@ qoder_main_pids() {
 
 qoder_is_running() {
   [ -n "$(qoder_main_pids)" ]
+}
+
+qoder_renderer_pids() {
+  /bin/ps -axo pid=,command= | /usr/bin/awk -v helper="$APP/Contents/Frameworks/Qoder CN Helper (Renderer).app/Contents/MacOS/Qoder CN Helper (Renderer)" '
+    {
+      pid = $1
+      line = $0
+      sub(/^[ \t]+/, "", line)
+      sub(/^[0-9]+[ \t]+/, "", line)
+      if (index(line, helper) != 1) next
+      if (line ~ /--type=renderer([ \t]|$)/) print pid
+    }'
 }
 
 kill_patched_main() {
@@ -158,6 +170,14 @@ verify_staged() {
     log "暫存 App 的簽章驗證失敗，取消套用。"
     return 1
   fi
+  if ! /usr/bin/codesign -d --entitlements :- "$STAGED_APP" 2>/dev/null | /usr/bin/grep -q "com.apple.security.cs.allow-jit"; then
+    log "暫存 App 缺少 JIT 權限（entitlements），取消套用。"
+    return 1
+  fi
+  if ! /usr/bin/codesign -d --entitlements :- "$STAGED_APP/Contents/Frameworks/Qoder CN Helper (Renderer).app" 2>/dev/null | /usr/bin/grep -q "com.apple.security.cs.allow-jit"; then
+    log "暫存 App 的 Renderer 缺少 JIT 權限，取消套用。"
+    return 1
+  fi
   return 0
 }
 
@@ -206,6 +226,18 @@ launch_and_wait() {
     log "等了 25 秒仍未偵測到 Qoder CN 主程式。"
     return 1
   fi
+  i=0
+  while [ "$i" -lt 20 ]; do
+    if [ -n "$(qoder_renderer_pids)" ]; then
+      break
+    fi
+    /bin/sleep 1
+    i=$((i + 1))
+  done
+  if [ -z "$(qoder_renderer_pids)" ]; then
+    log "Qoder CN 主程式已啟動，但 20 秒內沒有建立畫面行程（renderer）。"
+    return 1
+  fi
   pids="$(printf '%s ' $(qoder_main_pids))"
   log "Qoder CN 主程式已出現（PID: $pids），觀察 8 秒確認沒有立即結束。"
   for i in 1 2 3 4; do
@@ -215,6 +247,10 @@ launch_and_wait() {
       return 1
     fi
   done
+  if [ -z "$(qoder_renderer_pids)" ]; then
+    log "Qoder CN 的畫面行程在啟動後結束了。"
+    return 1
+  fi
   return 0
 }
 

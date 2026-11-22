@@ -36,12 +36,14 @@
   2 個以上漢字的字串常值（模板文字一律轉換），避免破壞輸入法資料。
 - **acorn 位移修正**：acorn 的 offset 是 UTF-16 code unit，bundle 含 emoji 時
   必須用 UTF-16 切片，否則字串 range 會整體錯位（`extract_ranges_typed.js`）。
-- **原生選單**：`wHt` 已無混淆，依系統 locale 回傳；`zh-tw`／`zh-hant` 走繁中。
+- **原生選單**：`wHt` 已無混淆；Qoder CN 會把 app locale 固成 `zh-CN`，所以
+  同時檢查 `app.getSystemLocale()`，`zh-tw`／`zh-hant` 走繁中選單。
 - **Sites 擴充**：`view.cjs` 的 `T4`、`publishPreview.cjs` 的 `p7`／`H7` 選取器
   與 `gs`／`PL` 狀態表；`plugin.json` 補 `zh-TW: 網站`，並更新 `catalog.v1.json`
   的三個雜湊與 manifest。
 - **安裝器**：`scripts/qoder-0.5.17-macos/install.sh`（`wait`／`now`／`check`／
   `restore`）；延後套用會等 Qoder CN 完全結束後替換 App、自動重開，失敗自動還原。
+  ad-hoc 重簽會保留原始 entitlements（JIT 等），並在啟動後確認 renderer 仍在執行。
 
 0.5.17 的字典位於 `work/0517-dict/`（`tw_base.json`、`sites_tw.json`、
 `sites_tw_annot.json`、`sites_status_tw.json`）。完整流程見

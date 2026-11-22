@@ -12,8 +12,8 @@ writes the patched copies to work/0517-stage/out.
 - Main renderer bundle is DMzt2vcU.js and embeds a ~20k-entry single-character
   IME dictionary. Conversion is therefore restricted to literals with at least
   two CJK characters (template text is always converted).
-- Native menu function is wHt (no obfuscated lookup) and takes the system
-  locale from its caller.
+- Native menu function is wHt. Qoder CN forces the app locale to zh-CN, so the
+  Traditional check also consults `xt.getSystemLocale()`.
 """
 
 import json
@@ -226,8 +226,9 @@ def patch_main_process():
     )
     new = (
         'function wHt(t,e=""){const zq=String(t).toLowerCase().replace(/_/g,"-"),'
+        'zs=String(xt?.getSystemLocale?.()||"").toLowerCase().replace(/_/g,"-"),'
         'zw=v=>v.startsWith("zh-tw")||v.startsWith("zh-hant")||v==="zh-hk"||v==="zh-mo";'
-        "if(zw(zq))" + tw_menu + ";"
+        "if(zw(zq)||zw(zs))" + tw_menu + ";"
         'return t.toLowerCase().startsWith("zh")?{about:"关于 "+e,'
     )
     s = patch(s, old, new, "main-menu-tw")
