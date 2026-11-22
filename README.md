@@ -44,6 +44,9 @@
 - **安裝器**：`scripts/qoder-0.5.17-macos/install.sh`（`wait`／`now`／`check`／
   `restore`）；延後套用會等 Qoder CN 完全結束後替換 App、自動重開，失敗自動還原。
   ad-hoc 重簽會保留原始 entitlements（JIT 等），並在啟動後確認 renderer 仍在執行。
+- **實機驗證**：2026-11-22 於 macOS 15.7.7（arm64、系統語系 zh-Hant-TW）套用成功；
+  原生選單顯示繁中、renderer 以 `--lang=zh-TW` 啟動，app.asar／catalog 雜湊與
+  JIT entitlements 均通過。
 
 0.5.17 的字典位於 `work/0517-dict/`（`tw_base.json`、`sites_tw.json`、
 `sites_tw_annot.json`、`sites_status_tw.json`）。完整流程見
