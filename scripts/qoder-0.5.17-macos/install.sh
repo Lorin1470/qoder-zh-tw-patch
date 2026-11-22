@@ -60,7 +60,7 @@ qoder_main_pids() {
       if (index(line, exe) != 1) next
       if (line ~ /(^|[ \t])--(type|sdk|eval)(=|[ \t]|$)/) next
       if (line ~ /--utility-sub-type/) next
-      if (line ~ /\.(mjs|cjs)([ \t]|$)/) next
+      if (line ~ /\.(mjs|cjs|js)([ \t]|$)/) next
       print pid
     }'
 }
